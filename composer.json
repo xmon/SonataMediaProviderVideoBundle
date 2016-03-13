@@ -1,5 +1,5 @@
 {
-    "name": "xmon/video-bundle",
+    "name": "xmon/sonata-media-provider-video-bundle",
     "type": "symfony-bundle",
     "description": "This bundle extends providers Sonata Media Bundle, creates a new provider for uploading videos and use FFmpeg",
     "keywords": ["video", "bundle", "media", "ffmpeg", "sonata"],
