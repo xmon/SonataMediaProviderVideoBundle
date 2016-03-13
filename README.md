@@ -23,7 +23,7 @@ There are a problem installing from composer.json of this bundle, [issue #16](ht
 
 ### Install this bundle
 ```sh
-$ php composer.phar require xmon/video-bundle 
+$ php composer.phar require xmon/sonata-media-provider-video-bundle 
 ```
 
 ## Add VideoBundle to your application kernel

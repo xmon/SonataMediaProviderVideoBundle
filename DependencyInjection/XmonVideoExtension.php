@@ -32,7 +32,10 @@ class XmonVideoExtension extends Extension
         $container->setParameter('xmon_ffprobe.binary', $config['ffprobe_binary']);
         $container->setParameter('xmon_ffmpeg.binary_timeout', $config['binary_timeout']);
         $container->setParameter('xmon_ffmpeg.threads_count', $config['threads_count']);
-        $container->setParameter('xmon_ffmpeg.image_frame', $config['image_frame']);
+        $container->setParameter('xmon_ffmpeg.image_frame', $config['config.image_frame']);
+        $container->setParameter('xmon_ffmpeg.mp4', $config['config.mp4']);
+        $container->setParameter('xmon_ffmpeg.ogg', $config['config.ogg']);
+        $container->setParameter('xmon_ffmpeg.webm', $config['config.webm']);
         
     }
 }
