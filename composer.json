@@ -1,0 +1,40 @@
+{
+    "name": "xmon/video-bundle",
+    "type": "symfony-bundle",
+    "description": "This bundle extends providers Sonata Media Bundle, creates a new provider for uploading videos and use FFmpeg",
+    "keywords": ["video", "bundle", "media", "ffmpeg", "sonata"],
+    "homepage": "https://github.com/xmon/SonataMediaProviderVideoBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Juanjo García",
+            "email": "juanjogarcia@eag.pm",
+            "homepage": "http://eag.pm",
+            "role": "Developer"
+        },
+        {
+            "name": "Jason Moore",
+            "email": "jmoore@useallfive.com",
+            "homepage": "https://github.com/UseAllFive/VideoBundle"
+        },
+        {
+            "name": "Maerianne",
+            "email": "maerianne@gmail.com",
+            "homepage": "https://github.com/maerianne/MaesboxVideoBundle"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "sonata-project/media-bundle": "@stable",
+        "phansys/getid3": "~2.1@dev",
+        "php-ffmpeg/php-ffmpeg": "~0.6"
+    },
+    "require-dev": {
+        "symfony/framework-bundle": ">=2.1"
+    },
+    "autoload": {
+        "psr-0": { "Xmon\\SonataMediaProviderVideoBundle": "" }
+    },
+    "minimum-stability": "dev",
+    "target-dir": "Xmon/SonataMediaProviderVideoBundle"
+}

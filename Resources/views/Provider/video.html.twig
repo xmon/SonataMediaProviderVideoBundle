@@ -1,0 +1,28 @@
+{#<div id="container_{{ media.id }}">Video Player Loading...</div>
+
+
+<script type="text/javascript">
+    jwplayer("container_{{ media.id }}").setup({
+        file: "{{ options.file }}",
+        image: "/uploads/media/{{ options.thumbnail.getKey() }}",
+        width: "{{ 525 }}",
+        height: "{{ 350 }}",
+        //skin: "/common/player/glow/glow.xml",
+        modes: [
+            { type: "html5" },
+            { type: "flash", src: "{{ asset('bundles/xmonsonatamediaprovidervideo/player/jwplayer.flash.swf') }}" },
+            { type: "http" }
+        ]
+    });
+</script>#}
+
+
+<video id="video-{{ media.id }}" class="video-js" controls preload="auto" width="640" height="264"
+  poster="/uploads/media/{{ options.thumbnail.getKey() }}" data-setup="{}">
+    <source src="MY_VIDEO.mp4" type='video/mp4'>
+    <source src="MY_VIDEO.webm" type='video/webm'>
+    <p class="vjs-no-js">
+      To view this video please enable JavaScript, and consider upgrading to a web browser that
+      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+    </p>
+  </video>

@@ -33,7 +33,7 @@ public function registerBundles()
 {
     return array(
         // ...
-        new Maesbox\VideoBundle\MaesboxVideoBundle(),
+        new Xmon\SonataMediaProviderVideoBundle\XmonSonataMediaProviderVideoBundle(),
         // ...
     );
 }
@@ -44,7 +44,7 @@ public function registerBundles()
 fter installing the bundle, make sure you configure these parameters
 
 ```yaml
-maesbox_video:
+xmon_video:
     ffmpeg_binary: "/usr/local/bin/ffmpeg" # Required, ffmpeg binary path
     ffprobe_binary: "/usr/local/bin/ffprobe" # Required, ffprobe binary path
     binary_timeout: 60 # Optional, default 60

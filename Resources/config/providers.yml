@@ -1,0 +1,38 @@
+parameters:
+    xmon_video.provider.video.class: Xmon\SonataMediaProviderVideoBundle\Provider\VideoProvider
+    xmon_video.ffmpeg.class: FFMpeg\FFMpeg
+    xmon_video.ffprobe.class: FFMpeg\FFProbe
+
+services:
+    sonata.media.provider.video:
+        class: %xmon_video.provider.video.class%
+        tags:
+            - { name: sonata.media.provider }
+        arguments:
+            - sonata.media.provider.video
+            - @sonata.media.filesystem.local
+            - @sonata.media.cdn.server
+            - @sonata.media.generator.default
+            - @sonata.media.thumbnail.format
+            - [ mp4 ]
+            - [ video/mp4 ]
+            - @sonata.media.resizer.simple
+            - @sonata.media.metadata.proxy
+            - @xmon_ffmpeg.ffmpeg
+            - @xmon_ffmpeg.ffprobe
+            - @service_container
+        calls:
+            - [ setTemplates, [ { helper_thumbnail: XmonSonataMediaProviderVideoBundle:Provider:thumbnail.html.twig, helper_view: XmonSonataMediaProviderVideoBundle:Provider:video.html.twig } ] ]
+
+    xmon_ffmpeg.ffmpeg:
+        class: %xmon_video.ffmpeg.class%
+        factory_class: %xmon_video.ffmpeg.class%
+        lazy: true
+        factory_method: create
+        arguments: [{ ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%', timeout: '%xmon_ffmpeg.binary_timeout%', ffmpeg.threads: '%xmon_ffmpeg.threads_count%' }, '@logger']
+    xmon_ffmpeg.ffprobe:
+        class: %xmon_video.ffprobe.class%
+        factory_class: %xmon_video.ffprobe.class%
+        lazy: true
+        factory_method: create
+        arguments: [{ ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%' }, '@logger']
