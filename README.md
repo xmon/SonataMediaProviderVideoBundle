@@ -6,12 +6,16 @@ creates a new video ``provider`` for uploading videos, generate thumbnail and us
 
 This Bundle is based on [sergeym/VideoBundle](https://github.com/sergeym/VideoBundle), 
 this Fork and the rest of the Forks of the [main project](https://github.com/maerianne/MaesboxVideoBundle) 
-appear to be abandoned and have made many changes, so I decided to 
+appear to be abandoned and I have made many changes, so I decided to 
 create a new functional and documented project.
+
+## Requirements
+
+You need install [ffmpeg](https://www.ffmpeg.org/) in your server.
 
 ## Installation
 
-### First you need install phansys/getid3 dependency
+### First you need install [phansys/getid3](https://github.com/phansys/GetId3) dependency
 ```sh
 $ php composer.phar require phansys/getid3:~2.1@dev
 ```
