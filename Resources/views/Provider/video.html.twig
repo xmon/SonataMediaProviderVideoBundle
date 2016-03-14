@@ -2,7 +2,7 @@
 <script src="http://vjs.zencdn.net/ie8/1.1.0/videojs-ie8.min.js"></script>
 <script src="http://vjs.zencdn.net/5.0.2/video.js"></script>  
 
-{% dump(media) %}
+{% dump(media.providerMetadata) %}
 <video 
     id="video-{{ media.id }}" 
     class="video-js" 
@@ -10,11 +10,17 @@
     preload="auto" 
     width="{{ media.width }}" 
     height="{{ media.height }}"
-    poster="/uploads/media/{{ options.thumbnail.getKey() }}" data-setup="{}"
-    >
-    <source src="http://vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
-    <source src="http://vjs.zencdn.net/v/oceans.webm" type="video/webm">
-    <source src="http://vjs.zencdn.net/v/oceans.ogv" type="video/ogg">
+    poster="/uploads/media/{{ options.thumbnail.getKey() }}" data-setup="{}">
+
+    {% if media.providerMetadata.filename_mp4 is defined  %}
+        <source src="/uploads/media/{{ media.providerMetadata.filename_mp4 }}" type="video/mp4">
+    {% endif %}
+    {% if media.providerMetadata.filename_ogg is defined %}
+        <source src="/uploads/media/{{ media.providerMetadata.filename_ogg }}" type="video/ogg">
+    {% endif %}
+    {% if media.providerMetadata.filename_webm is defined %}
+        <source src="/uploads/media/{{ media.providerMetadata.filename_webm }}" type="video/webm">
+    {% endif %}
     <p class="vjs-no-js">
         To view this video please enable JavaScript, and consider upgrading to a web browser that
         <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>

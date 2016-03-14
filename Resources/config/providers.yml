@@ -36,3 +36,7 @@ services:
         lazy: true
         factory_method: create
         arguments: [{ ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%' }, '@logger']
+
+#twig:
+    #globals:
+        #video_width: %xmon_ffmpeg.video_width%

@@ -6,34 +6,27 @@ use Sonata\MediaBundle\Provider\FileProvider;
 use Sonata\MediaBundle\Entity\BaseMedia as Media;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Resizer\ResizerInterface;
-
 use Gaufrette\Adapter\Local;
 use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
 use Sonata\MediaBundle\Thumbnail\ThumbnailInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
-
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Validator\ErrorElement;
-
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Form\FormBuilder;
-
 use Gaufrette\Filesystem;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\Coordinate\Dimension;
 use FFMpeg\Format\Video;
-
 use Symfony\Component\DependencyInjection\ContainerInterface as Container;
-
 use GetId3\GetId3Core as GetId3;
-
 use Symfony\Component\Form\Form;
 
 class VideoProvider extends FileProvider {
@@ -93,59 +86,54 @@ class VideoProvider extends FileProvider {
 
         parent::doTransform($media);
 
-        /* dump("INI image_frame");
-          dump($this->container->getParameter('xmon_ffmpeg.image_frame'));
-          dump("FIN image_frame"); */
-
-        $this->fixBinaryContent($media);
-        $this->fixFilename($media);
+        //$this->fixBinaryContent($media);
+        //$this->fixFilename($media);
 
         if (!is_object($media->getBinaryContent()) && !$media->getBinaryContent()) {
             return;
         }
 
-        /*
-          dump($media);
-          dump($media->getBinaryContent());
-          dump($media->getBinaryContent()->getPathname());
-          dump($media->getBinaryContent()->getMimeType());
-         * 
-         */
-
         $stream = $this->ffprobe
                 ->streams($media->getBinaryContent()->getRealPath())
                 ->videos()
                 ->first();
-        //dump($stream);
 
-        $framecount = $stream->get('nb_frames');
+        //$framecount = $stream->get('nb_frames');
         $duration = $stream->get('duration');
-        $height = $stream->get('height');
-        $width = $stream->get('width');
+        $heightOriginal = $stream->get('height');
+        $widthOriginal = $stream->get('width');
 
-        //dump($media->getBinaryContent()->getRealPath());
+        // para recuperar las dimensiones de los vídeos codificados
+        // las calculo aquí para guardarlas en la tabla, en lugar de 
+        // las dimensiones reales del vídeo original
+        // estoy hay que eliminarlo en el momento en el que consiga pasar variables
+        // a las plantillas twig     
+        $width = $this->configVideoWidth;
+        $height = round($this->configVideoWidth * $heightOriginal / $widthOriginal);
 
-        $video = $this->ffmpeg->open($media->getBinaryContent()->getRealPath());
-        //dump($video);
 
-        if (!$media->getProviderReference()) {
-            $media->setProviderReference($this->generateReferenceName($media));
-        }
+        /*
+          $video = $this->ffmpeg->open($media->getBinaryContent()->getRealPath());
 
-        $frame_pos = round($framecount / 2);
-        $timecode = new Timecode("0", "0", "0", $frame_pos);
-        $frame = $video->frame($timecode);
-        while (!$frame && $frame_pos > 0) {
-            $frame_pos--;
-            $timecodeString = sprintf("0:0:0:0.%d", $frame_pos);
-            $timecode = new Timecode("0", "0", "0", $frame_pos);
-            $frame = $video->frame($timecode);
-        }
+          if (!$media->getProviderReference()) {
+          $media->setProviderReference($this->generateReferenceName($media));
+          }
 
-        if (!$frame) {
-            echo "Thumbnail Generation Failed";
-            exit;
-        }
+          $frame_pos = round($framecount / 2);
+          $timecode = new Timecode("0", "0", "0", $frame_pos);
+          $frame = $video->frame($timecode);
+
+          while (!$frame && $frame_pos > 0) {
+          $frame_pos--;
+          //$timecodeString = sprintf("0:0:0:0.%d", $frame_pos);
+          $timecode = new Timecode("0", "0", "0", $frame_pos);
+          $frame = $video->frame($timecode);
+          }
+
+          if (!$frame) {
+          echo "Thumbnail Generation Failed";
+          exit;
+          } */
 
         if ($media->getBinaryContent()) {
             $media->setContentType($media->getBinaryContent()->getMimeType());
@@ -189,22 +177,45 @@ class VideoProvider extends FileProvider {
      * @param \Sonata\MediaBundle\Model\MediaInterface $media
      *
      * @return void
-     */
-    protected function fixFilename(MediaInterface $media) {
-        dump($media);
-        if ($media->getBinaryContent() instanceof UploadedFile) {
-            $media->setName($media->getName() ? : $media->getBinaryContent()->getClientOriginalName());
-            $media->setMetadataValue('filename', $media->getBinaryContent()->getClientOriginalName());
-        } elseif ($media->getBinaryContent() instanceof File) {
-            $media->setName($media->getName() ? : $media->getBinaryContent()->getBasename());
-            $media->setMetadataValue('filename', $media->getBinaryContent()->getBasename());
-        }
+      protected function fixFilename(MediaInterface $media) {
 
-        // this is the original name
-        if (!$media->getName()) {
-            throw new \RuntimeException('Please define a valid media\'s name');
-        }
-    }
+      if ($media->getBinaryContent() instanceof UploadedFile) {
+      $media->setName($media->getName() ? : $media->getBinaryContent()->getClientOriginalName());
+      $media->setMetadataValue('filename', $media->getBinaryContent()->getClientOriginalName());
+      dump("UploadedFile");
+      dump($media);
+      } elseif ($media->getBinaryContent() instanceof File) {
+      $media->setName($media->getName() ? : $media->getBinaryContent()->getBasename());
+      $media->setMetadataValue('filename', $media->getBinaryContent()->getBasename());
+      dump("File");
+      }
+
+      // this is the original name
+      if (!$media->getName()) {
+      throw new \RuntimeException('Please define a valid media\'s name');
+      }
+
+      if ($this->configMp4) {
+      // genero los nombres de archivos de cada uno de los formatos
+      $pathMp4 = sprintf('videos_mp4_%s', $media->getProviderReference());
+      $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
+      $media->setMetadataValue('filename_mp4', $mp4);
+      }
+
+      if ($this->configOgg) {
+      $pathOgg = sprintf('videos_ogg_%s', $media->getProviderReference());
+      $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
+      $media->setMetadataValue('filename_ogg', $ogg);
+      }
+
+      if ($this->configWebm) {
+      $pathWebm = sprintf('videos_webm_%s', $media->getProviderReference());
+      $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
+      $media->setMetadataValue('filename_webm', $webm);
+
+      }
+      }
+     */
 
     /**
      * @param \Sonata\MediaBundle\Model\MediaInterface $media
@@ -256,6 +267,10 @@ class VideoProvider extends FileProvider {
 
     public function generateVideos(MediaInterface $media) {
 
+        dump($media);
+
+        $media->setMetadataValue('filenameee', "test");
+
         // obtengo la ruta del archivo original
         $source = sprintf('%s/%s/%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getProviderReference());
 
@@ -273,6 +288,7 @@ class VideoProvider extends FileProvider {
             $pathMp4 = sprintf('%s/%s/videos_mp4_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getProviderReference());
             $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
             $video->save(new Video\X264(), $mp4);
+            $media->setProviderMetadata(['filename_mp4' => $mp4]);
         }
 
         if ($this->configOgg) {
@@ -286,10 +302,6 @@ class VideoProvider extends FileProvider {
             $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
             $video->save(new Video\WebM(), $webm);
         }
-        dump($media);
-        
-            $media->setMetadataValue('filenameee', "test");
-            flush();
     }
 
     public function generateThumbsPrivateUrl($media, $format, $ext = 'jpeg') {
@@ -446,19 +458,6 @@ class VideoProvider extends FileProvider {
         $timecode = TimeCode::fromSeconds($seconds_extract);
         $frame = $video->frame($timecode);
 
-        /*
-          // arreglo que comprueba si el vídeo es de más de 5 segundos, si no tiene
-          // esta longitud se va reduciendo en un segundo hasta comprobar
-          // que existe ese punto
-          dump($frame);
-          while(!$frame && $seconds_extract > 0)
-          {
-          $seconds_extract--;
-          $frame = $video->frame(TimeCode::fromSeconds($seconds_extract));
-          dump($seconds_extract);
-          }
-         */
-
         if (!$frame) {
             echo "Thumbnail Generation Failed";
             exit;
@@ -471,6 +470,40 @@ class VideoProvider extends FileProvider {
         );
 
         $frame->save($thumnailPath);
+    }
+
+    public function prePersist(MediaInterface $media) {
+
+        if (!$media->getBinaryContent()) {
+
+            return;
+        }
+
+
+        $metadata = [
+            'filename' => $media->getProviderMetadata('filename')
+        ];
+
+        // genero los nombres de archivos de cada uno de los formatos
+        if ($this->configMp4) {
+            $pathMp4 = sprintf('%s/videos_mp4_%s', $this->generatePath($media), $media->getProviderReference());
+            $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
+            $metadata['filename_mp4'] = $mp4;
+        }
+
+        if ($this->configOgg) {
+            $pathOgg = sprintf('%s/videos_ogg_%s', $this->generatePath($media), $media->getProviderReference());
+            $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
+            $metadata['filename_ogg'] = $ogg;
+        }
+
+        if ($this->configWebm) {
+            $pathWebm = sprintf('%s/videos_webm_%s', $this->generatePath($media), $media->getProviderReference());
+            $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
+            $metadata['filename_webm'] = $webm;
+        }
+
+        $media->setProviderMetadata($metadata);
     }
 
     public function postPersist(MediaInterface $media) {
@@ -488,6 +521,40 @@ class VideoProvider extends FileProvider {
 
     public function postRemove(MediaInterface $media) {
         
+    }
+
+    public function preUpdate(MediaInterface $media) {
+
+        if (!$media->getBinaryContent()) {
+
+            return;
+        }
+
+
+        $metadata = [
+            'filename' => $media->getProviderMetadata('filename')
+        ];
+
+        // genero los nombres de archivos de cada uno de los formatos
+        if ($this->configMp4) {
+            $pathMp4 = sprintf('%s/videos_mp4_%s', $this->generatePath($media), $media->getProviderReference());
+            $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
+            $metadata['filename_mp4'] = $mp4;
+        }
+
+        if ($this->configOgg) {
+            $pathOgg = sprintf('%s/videos_ogg_%s', $this->generatePath($media), $media->getProviderReference());
+            $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
+            $metadata['filename_ogg'] = $ogg;
+        }
+
+        if ($this->configWebm) {
+            $pathWebm = sprintf('%s/videos_webm_%s', $this->generatePath($media), $media->getProviderReference());
+            $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
+            $metadata['filename_webm'] = $webm;
+        }
+
+        $media->setProviderMetadata($metadata);
     }
 
     public function postUpdate(MediaInterface $media) {
