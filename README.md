@@ -61,4 +61,8 @@ xmon_sonata_media_provider_video:
 ### Credits
 
  - Thanks to all contributors who participated in the initial Forks of this project. Especially with the main Fork [(maerianne/MaesboxVideoBundle)](https://github.com/maerianne/MaesboxVideoBundle) and Fork [(sergeym/VideoBundle)](https://github.com/sergeym/VideoBundle) I used to continue my development.
+ - Thanks other proyect required by this one:
+	 - [SonataMediaBundle](https://github.com/sonata-project/SonataMediaBundle).
+	 - [GetId3](https://github.com/phansys/GetId3)
+	 - [PHP FFmpeg](https://github.com/PHP-FFMpeg/PHP-FFMpeg)
  - It has been used [videojs](http://videojs.com/) plugin such as video player in the administration
