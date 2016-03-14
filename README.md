@@ -57,3 +57,8 @@ xmon_sonata_media_provider_video:
         ogg: true # Optional, default true, generate OGG format
         webm: true # Optional, default true, generate WEBM format
 ```
+
+### Credits
+
+ - Thanks to all contributors who participated in the initial Forks of this project. Especially with the main Fork [(maerianne/MaesboxVideoBundle)](https://github.com/maerianne/MaesboxVideoBundle) and Fork [(sergeym/VideoBundle)](https://github.com/sergeym/VideoBundle) I used to continue my development.
+ - It has been used [videojs](http://videojs.com/) plugin such as video player in the administration
