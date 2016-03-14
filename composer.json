@@ -2,7 +2,7 @@
     "name": "xmon/sonata-media-provider-video-bundle",
     "type": "symfony-bundle",
     "description": "This bundle extends providers Sonata Media Bundle, creates a new provider for uploading videos and use FFmpeg",
-    "keywords": ["video", "bundle", "media", "ffmpeg", "sonata"],
+    "keywords": ["symfony2", "video", "bundle", "media", "ffmpeg", "sonata-media"],
     "homepage": "https://github.com/xmon/SonataMediaProviderVideoBundle",
     "license": "MIT",
     "authors": [
