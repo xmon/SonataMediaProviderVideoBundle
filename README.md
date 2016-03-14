@@ -44,14 +44,16 @@ public function registerBundles()
 fter installing the bundle, make sure you configure these parameters
 
 ```yaml
-xmon_video:
+xmon_sonata_media_provider_video:
     ffmpeg_binary: "/usr/local/bin/ffmpeg" # Required, ffmpeg binary path
     ffprobe_binary: "/usr/local/bin/ffprobe" # Required, ffprobe binary path
     binary_timeout: 60 # Optional, default 60
     threads_count: 4 # Optional, default 4
     config:
-        image_frame: 10 # Optional, default 10, Can not be empty, second from extract image
-        mp4: true #default true, generate MP4 format
-        ogg: true #default true, generate OGG format
-        webm: true #default true, generate WEBM format
+        image_frame: 5 # Optional, default 10, Can not be empty. Where the second image capture
+        video_width: 640 # Optional, default 640, Can not be empty. Video proportionally scaled to this width
+    formats:
+        mp4: true # Optional, default true, generate MP4 format
+        ogg: true # Optional, default true, generate OGG format
+        webm: true # Optional, default true, generate WEBM format
 ```
