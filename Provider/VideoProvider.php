@@ -6,34 +6,27 @@ use Sonata\MediaBundle\Provider\FileProvider;
 use Sonata\MediaBundle\Entity\BaseMedia as Media;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Resizer\ResizerInterface;
-
 use Gaufrette\Adapter\Local;
 use Sonata\CoreBundle\Model\Metadata;
 use Sonata\MediaBundle\CDN\CDNInterface;
 use Sonata\MediaBundle\Generator\GeneratorInterface;
 use Sonata\MediaBundle\Thumbnail\ThumbnailInterface;
 use Sonata\MediaBundle\Metadata\MetadataBuilderInterface;
-
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Validator\ErrorElement;
-
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Form\FormBuilder;
-
 use Gaufrette\Filesystem;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\Coordinate\Dimension;
 use FFMpeg\Format\Video;
-
 use Symfony\Component\DependencyInjection\ContainerInterface as Container;
-
 use GetId3\GetId3Core as GetId3;
-
 use Symfony\Component\Form\Form;
 
 class VideoProvider extends FileProvider {
@@ -256,6 +249,8 @@ class VideoProvider extends FileProvider {
 
     public function generateVideos(MediaInterface $media) {
 
+        $media->setMetadataValue('filenameee', "test");
+
         // obtengo la ruta del archivo original
         $source = sprintf('%s/%s/%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getProviderReference());
 
@@ -286,10 +281,6 @@ class VideoProvider extends FileProvider {
             $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
             $video->save(new Video\WebM(), $webm);
         }
-        dump($media);
-        
-            $media->setMetadataValue('filenameee', "test");
-            flush();
     }
 
     public function generateThumbsPrivateUrl($media, $format, $ext = 'jpeg') {
