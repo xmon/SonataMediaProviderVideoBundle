@@ -18,7 +18,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('xmon_video');
+        $rootNode = $treeBuilder->root('xmon_sonata_media_provider_video');
 
         $rootNode
                 ->children()
@@ -35,12 +35,23 @@ class Configuration implements ConfigurationInterface
                         ->defaultValue(4)
                     ->end()
                     ->arrayNode('config')
+                        ->addDefaultsIfNotSet()
                         ->children()
                             ->integerNode('image_frame')
-                                ->info('second from extract image.')
+                                ->info('Where the second image capture.')
                                 ->cannotBeEmpty()
                                 ->defaultValue(10)
                             ->end()
+                            ->integerNode('video_width')
+                                ->info('Video proportionally scaled to this width.')
+                                ->cannotBeEmpty()
+                                ->defaultValue(640)
+                            ->end()
+                        ->end()
+                    ->end()
+                    ->arrayNode('formats')
+                        ->addDefaultsIfNotSet()
+                        ->children()
                             ->booleanNode('mp4')
                                 ->defaultTrue()
                             ->end()
