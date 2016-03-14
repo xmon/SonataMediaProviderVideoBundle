@@ -191,6 +191,7 @@ class VideoProvider extends FileProvider {
      * @return void
      */
     protected function fixFilename(MediaInterface $media) {
+        dump($media);
         if ($media->getBinaryContent() instanceof UploadedFile) {
             $media->setName($media->getName() ? : $media->getBinaryContent()->getClientOriginalName());
             $media->setMetadataValue('filename', $media->getBinaryContent()->getClientOriginalName());
@@ -285,6 +286,10 @@ class VideoProvider extends FileProvider {
             $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
             $video->save(new Video\WebM(), $webm);
         }
+        dump($media);
+        
+            $media->setMetadataValue('filenameee', "test");
+            flush();
     }
 
     public function generateThumbsPrivateUrl($media, $format, $ext = 'jpeg') {
