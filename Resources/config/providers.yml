@@ -21,6 +21,7 @@ services:
             - @xmon_ffmpeg.ffmpeg
             - @xmon_ffmpeg.ffprobe
             - @service_container
+            - @doctrine.orm.entity_manager
         calls:
             - [ setTemplates, [ { helper_thumbnail: XmonSonataMediaProviderVideoBundle:Provider:thumbnail.html.twig, helper_view: XmonSonataMediaProviderVideoBundle:Provider:video.html.twig } ] ]
 

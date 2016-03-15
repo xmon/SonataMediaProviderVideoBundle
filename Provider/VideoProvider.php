@@ -22,6 +22,7 @@ use Sonata\AdminBundle\Form\FormMapper;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
+use Doctrine\ORM\EntityManager;
 use Gaufrette\Filesystem;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
@@ -45,6 +46,7 @@ class VideoProvider extends FileProvider {
     protected $configMp4;
     protected $configOgg;
     protected $configWebm;
+    protected $entityManager;
 
     /**
      * @param string                                                $name
@@ -58,8 +60,10 @@ class VideoProvider extends FileProvider {
      * @param \Sonata\MediaBundle\Metadata\MetadataBuilderInterface $metadata
      * @param \FFMpeg\FFMpeg                                        $FFMpeg
      * @param \FFMpeg\FFProbe                                       $FFProbe
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     * @param \Doctrine\ORM\EntityManager $entityManager
      */
-    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, array $allowedExtensions = array(), array $allowedMimeTypes = array(), ResizerInterface $resizer, MetadataBuilderInterface $metadata = null, FFMpeg $FFMpeg, FFProbe $FFProbe, Container $container) {
+    public function __construct($name, Filesystem $filesystem, CDNInterface $cdn, GeneratorInterface $pathGenerator, ThumbnailInterface $thumbnail, array $allowedExtensions = array(), array $allowedMimeTypes = array(), ResizerInterface $resizer, MetadataBuilderInterface $metadata = null, FFMpeg $FFMpeg, FFProbe $FFProbe, Container $container, EntityManager $entityManager) {
 
         parent::__construct($name, $filesystem, $cdn, $pathGenerator, $thumbnail, $allowedExtensions, $allowedMimeTypes, $metadata);
 
@@ -71,6 +75,7 @@ class VideoProvider extends FileProvider {
         $this->ffprobe = $FFProbe;
         $this->ffmpeg = $FFMpeg;
         $this->container = $container;
+        $this->em = $entityManager;
 
         // configuración
         $this->configImageFrame = $this->container->getParameter('xmon_ffmpeg.image_frame');
@@ -412,19 +417,19 @@ class VideoProvider extends FileProvider {
      * {@inheritdoc}
      */
     public function preRemove(MediaInterface $media) {
-        dump("preRemove");
-
-        $path = $this->getReferenceImage($media);
-
-        dump($path);
-
-        if ($this->getFilesystem()->has($path)) {
-            dump("haspath");
-            $this->getFilesystem()->delete($path);
+        
+        // arreglo para eliminar la relación del video con la galería
+        if ($galleryHasMedias = $media->getGalleryHasMedias()) {
+            foreach ($galleryHasMedias as $galleryHasMedia) {
+                $this->em->remove($galleryHasMedia);
+            }
+        }
+        
+        if ($this->getFilesystem()->has($media)) {
+            $this->getFilesystem()->delete($media);
         }
 
         if ($this->requireThumbnails()) {
-            dump("requireThumbnails");
             $this->thumbnail->delete($this, $media);
         }
     }
