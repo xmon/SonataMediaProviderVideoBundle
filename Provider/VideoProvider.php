@@ -267,10 +267,6 @@ class VideoProvider extends FileProvider {
 
     public function generateVideos(MediaInterface $media) {
 
-        dump($media);
-
-        $media->setMetadataValue('filenameee', "test");
-
         // obtengo la ruta del archivo original
         $source = sprintf('%s/%s/%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getProviderReference());
 
