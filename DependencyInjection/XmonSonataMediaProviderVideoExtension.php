@@ -24,9 +24,6 @@ class XmonSonataMediaProviderVideoExtension extends Extension
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('providers.yml');
-        
-        $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.xml');
 
         $container->setParameter('xmon_ffmpeg.binary', $config['ffmpeg_binary']);
         $container->setParameter('xmon_ffprobe.binary', $config['ffprobe_binary']);

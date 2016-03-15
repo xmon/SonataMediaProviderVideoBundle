@@ -2,6 +2,7 @@ parameters:
     xmon_video.provider.video.class: Xmon\SonataMediaProviderVideoBundle\Provider\VideoProvider
     xmon_video.ffmpeg.class: FFMpeg\FFMpeg
     xmon_video.ffprobe.class: FFMpeg\FFProbe
+    xmon.manager.video.class: Xmon\SonataMediaProviderVideoBundle\Manager\VideoManager
 
 services:
     sonata.media.provider.video:
@@ -37,6 +38,12 @@ services:
         lazy: true
         factory_method: create
         arguments: [{ ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%' }, '@logger']
+
+    xmon.manager.video:
+        class: %xmon.manager.video.class%
+        tags:
+            - { name: leclerc.manager }
+        arguments: ['@doctrine.orm.default_entity_manager', Xmon\SonataMediaProviderVideoBundle\Entity\Video]
 
 #twig:
     #globals:
