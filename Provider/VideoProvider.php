@@ -115,9 +115,10 @@ class VideoProvider extends FileProvider {
 
         //$framecount = $stream->get('nb_frames');
         $duration = $stream->get('duration');
-        $heightOriginal = $stream->get('height');
-        $widthOriginal = $stream->get('width');
+        $height = $stream->get('height');
+        $width = $stream->get('width');
 
+        /*
         // para recuperar las dimensiones de los vídeos codificados
         // las calculo aquí para guardarlas en la tabla, en lugar de 
         // las dimensiones reales del vídeo original
@@ -125,6 +126,7 @@ class VideoProvider extends FileProvider {
         // a las plantillas twig     
         $width = $this->configVideoWidth;
         $height = round($this->configVideoWidth * $heightOriginal / $widthOriginal);
+         */
 
         if ($media->getBinaryContent()) {
             $media->setContentType($media->getBinaryContent()->getMimeType());

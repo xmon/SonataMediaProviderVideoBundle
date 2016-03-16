@@ -44,6 +44,13 @@ services:
         tags:
             - { name: leclerc.manager }
         arguments: ['@doctrine.orm.default_entity_manager', Xmon\SonataMediaProviderVideoBundle\Entity\Video]
+            
+    # variables globales para utilizar en plantillas Twig
+    twig.extension.globals_extension:
+         class: Xmon\SonataMediaProviderVideoBundle\Twig\Extension\GlobalsExtension
+         arguments: [%xmon_ffmpeg.video_width%]
+         tags:
+             - { name: twig.extension }
 
 #twig:
     #globals:

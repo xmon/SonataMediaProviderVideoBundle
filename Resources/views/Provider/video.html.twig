@@ -2,13 +2,16 @@
 <script src="http://vjs.zencdn.net/ie8/1.1.0/videojs-ie8.min.js"></script>
 <script src="http://vjs.zencdn.net/5.0.2/video.js"></script>  
 
+{# calculo el alto escalado del vídeo #}
+{% set height = width * media.height / media.width %}
+
 <video 
     id="video-{{ media.id }}" 
     class="video-js" 
     controls 
     preload="auto" 
-    width="{{ media.width }}" 
-    height="{{ media.height }}"
+    width="{{ width }}" 
+    height="{{ height }}"
     poster="/uploads/media/{{ options.thumbnail.getKey() }}" data-setup="{}">
 
     {% if media.providerMetadata.filename_mp4 is defined  %}
