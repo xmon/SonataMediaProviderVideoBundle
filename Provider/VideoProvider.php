@@ -258,16 +258,25 @@ class VideoProvider extends FileProvider {
      * {@inheritdoc}
      */
     public function generatePublicUrl(MediaInterface $media, $format) {
+        
         if ($format == 'reference') {
             $path = sprintf('%s/%s', $this->generatePath($media), $media->getProviderReference());
         } elseif ($format == 'admin') {
             $path = sprintf('%s/%s', $this->generatePath($media), str_replace($this->getExtension($media), 'jpg', $media->getProviderReference()));
         } elseif ($format == 'videos_ogg') {
             $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'ogg', $media->getProviderReference()));
+        } elseif ($format == 'videos_webm') {
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'ogg', $media->getProviderReference()));
         } elseif ($format == 'videos_mp4') {
             $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'mp4', $media->getProviderReference()));
         } else {
-            $path = sprintf('%s/%s', $this->generatePath($media), str_replace($this->getExtension($media), 'jpg', $media->getProviderReference()));
+            //$path = $this->thumbnail->generatePublicUrl($this, $media, $format);
+            //$path = sprintf('%s/%s', $this->generatePath($media), str_replace($this->getExtension($media), 'jpg', $media->getProviderReference()));
+            $path = sprintf('%s/thumb_%d_%s.jpg',
+                $this->generatePath($media),
+                $media->getId(),
+                $format
+            );
         }
 
         return $this->getCdn()->getPath($path, $media->getCdnIsFlushable());
