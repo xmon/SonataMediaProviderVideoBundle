@@ -3,6 +3,7 @@ parameters:
     xmon_video.ffmpeg.class: FFMpeg\FFMpeg
     xmon_video.ffprobe.class: FFMpeg\FFProbe
     xmon.manager.video.class: Xmon\SonataMediaProviderVideoBundle\Manager\VideoManager
+    xmon.provider.video.resize: Xmon\SonataMediaProviderVideoBundle\CoreBundle\Resizer\CustomResizer
 
 services:
     sonata.media.provider.video:
@@ -17,7 +18,7 @@ services:
             - @sonata.media.thumbnail.format
             - [ mp4 ]
             - [ video/mp4 ]
-            - @sonata.media.resizer.simple
+            - @sonata.media.resizer.custom
             - @sonata.media.metadata.proxy
             - @xmon_ffmpeg.ffmpeg
             - @xmon_ffmpeg.ffprobe
@@ -44,6 +45,12 @@ services:
         tags:
             - { name: leclerc.manager }
         arguments: ['@doctrine.orm.default_entity_manager', Xmon\SonataMediaProviderVideoBundle\Entity\Video]
+            
+    # redimensiones imagenes personalizado
+    sonata.media.resizer.custom:
+        class: %xmon.provider.video.resize%
+        arguments: [@sonata.media.adapter.image.gd, 'outbound', @sonata.media.metadata.proxy]
+    # FIN redimensiones imagenes personalizado
             
     # variables globales para utilizar en plantillas Twig
     twig.extension.globals_extension:
