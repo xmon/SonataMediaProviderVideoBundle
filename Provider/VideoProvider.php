@@ -266,7 +266,7 @@ class VideoProvider extends FileProvider {
         } elseif ($format == 'videos_ogg') {
             $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'ogg', $media->getProviderReference()));
         } elseif ($format == 'videos_webm') {
-            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'ogg', $media->getProviderReference()));
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'webm', $media->getProviderReference()));
         } elseif ($format == 'videos_mp4') {
             $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'mp4', $media->getProviderReference()));
         } else {
@@ -309,6 +309,9 @@ class VideoProvider extends FileProvider {
             'width' => $box->getWidth(),
             'height' => $box->getHeight(),
             'duration' => $media->getLength(),
+            'video_mp4' => $this->generatePublicUrl($media, "videos_mp4"),
+            'video_ogg' => $this->generatePublicUrl($media, "videos_ogg"),
+            'video_webm' => $this->generatePublicUrl($media, "videos_webm")
                 ), $options);
     }
 
@@ -382,7 +385,7 @@ class VideoProvider extends FileProvider {
             return;
         }
 
-        $metadata = [
+        /*$metadata = [
             'filename' => $media->getProviderMetadata('filename')
         ];
 
@@ -401,6 +404,27 @@ class VideoProvider extends FileProvider {
 
         if ($this->configWebm) {
             $pathWebm = sprintf('%s/videos_webm_%s', $this->generatePath($media), $media->getProviderReference());
+            $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
+            $metadata['filename_webm'] = $webm;
+        }*/
+        
+        $metadata = $media->getProviderMetadata('filename');
+
+        // genero los nombres de archivos de cada uno de los formatos
+        if ($this->configMp4) {
+            $pathMp4 = sprintf('videos_mp4_%s', $media->getProviderReference());
+            $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
+            $metadata['filename_mp4'] = $mp4;
+        }
+
+        if ($this->configOgg) {
+            $pathOgg = sprintf('videos_ogg_%s', $media->getProviderReference());
+            $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
+            $metadata['filename_ogg'] = $ogg;
+        }
+
+        if ($this->configWebm) {
+            $pathWebm = sprintf('videos_webm_%s', $media->getProviderReference());
             $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
             $metadata['filename_webm'] = $webm;
         }
@@ -463,25 +487,24 @@ class VideoProvider extends FileProvider {
         }
 
 
-        $metadata = [
-            'filename' => $media->getProviderMetadata('filename')
-        ];
+        
+        $metadata = $media->getProviderMetadata('filename');
 
         // genero los nombres de archivos de cada uno de los formatos
         if ($this->configMp4) {
-            $pathMp4 = sprintf('%s/videos_mp4_%s', $this->generatePath($media), $media->getProviderReference());
+            $pathMp4 = sprintf('videos_mp4_%s', $media->getProviderReference());
             $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
             $metadata['filename_mp4'] = $mp4;
         }
 
         if ($this->configOgg) {
-            $pathOgg = sprintf('%s/videos_ogg_%s', $this->generatePath($media), $media->getProviderReference());
+            $pathOgg = sprintf('videos_ogg_%s', $media->getProviderReference());
             $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
             $metadata['filename_ogg'] = $ogg;
         }
 
         if ($this->configWebm) {
-            $pathWebm = sprintf('%s/videos_webm_%s', $this->generatePath($media), $media->getProviderReference());
+            $pathWebm = sprintf('videos_webm_%s', $media->getProviderReference());
             $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
             $metadata['filename_webm'] = $webm;
         }

@@ -57,6 +57,15 @@ xmon_sonata_media_provider_video:
         ogg: true # Optional, default true, generate OGG format
         webm: true # Optional, default true, generate WEBM format
 ```
+## Twig usage
+
+For printing the URLs of the converted videos that have been saved in the metadata field, I have created 3 twig filters
+
+```twig
+{{ media|video_mp4 }}
+{{ media|video_ogg }}
+{{ media|video_webm }}
+```
 
 ### Credits
 

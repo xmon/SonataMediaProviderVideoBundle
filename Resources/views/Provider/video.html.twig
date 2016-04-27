@@ -15,13 +15,13 @@
     poster="/uploads/media/{{ options.thumbnail.getKey() }}" data-setup="{}">
 
     {% if media.providerMetadata.filename_mp4 is defined  %}
-        <source src="/uploads/media/{{ media.providerMetadata.filename_mp4 }}" type="video/mp4">
+        <source src="{{ options.video_mp4 }}" type="video/mp4">
     {% endif %}
     {% if media.providerMetadata.filename_ogg is defined %}
-        <source src="/uploads/media/{{ media.providerMetadata.filename_ogg }}" type="video/ogg">
+        <source src="{{ options.video_ogg }}" type="video/ogg">
     {% endif %}
     {% if media.providerMetadata.filename_webm is defined %}
-        <source src="/uploads/media/{{ media.providerMetadata.filename_webm }}" type="video/webm">
+        <source src="{{ options.video_webm }}" type="video/webm">
     {% endif %}
     <p class="vjs-no-js">
         To view this video please enable JavaScript, and consider upgrading to a web browser that
