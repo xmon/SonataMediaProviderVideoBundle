@@ -211,6 +211,11 @@ class VideoProvider extends FileProvider {
 
         // determino las dimensiones del vídeo
         $height = round($this->configVideoWidth * $media->getHeight() / $media->getWidth());
+        
+        // corrección para que el alto no sea impar, si es impar PETA ffmpeg
+        if($height % 2 != 0){
+            $height = $height-1;
+        }
 
         $video = $this->ffmpeg->open($source);
         $video
