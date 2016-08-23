@@ -47,6 +47,7 @@ class VideoProvider extends FileProvider {
     protected $configOgg;
     protected $configWebm;
     protected $entityManager;
+    protected $thumbnail;
 
     /**
      * @param string                                                $name
@@ -76,6 +77,7 @@ class VideoProvider extends FileProvider {
         $this->ffmpeg = $FFMpeg;
         $this->container = $container;
         $this->em = $entityManager;
+        $this->thumbnail = $thumbnail;
 
         // configuración
         $this->configImageFrame = $this->container->getParameter('xmon_ffmpeg.image_frame');
@@ -183,6 +185,14 @@ class VideoProvider extends FileProvider {
     /**
      * {@inheritdoc}
      */
+    public function requireThumbnails()
+    {
+        return $this->getResizer() !== null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function generateThumbnails(MediaInterface $media, $ext = 'jpg') {
         $this->generateReferenceImage($media);
 
@@ -256,7 +266,28 @@ class VideoProvider extends FileProvider {
      * {@inheritdoc}
      */
     public function generatePrivateUrl(MediaInterface $media, $format) {
-        
+        if ($format == 'reference') {
+            $path = sprintf('%s/%s', $this->generatePath($media), $media->getProviderReference());
+        } elseif ($format == 'admin') {
+            $path = sprintf('%s/%s', $this->generatePath($media), str_replace($this->getExtension($media), 'jpg', $media->getProviderReference()));
+        } elseif ($format == 'default_video') {
+            $path = sprintf('%s/%s', $this->generatePath($media), str_replace($this->getExtension($media), $media->getProviderReference()));
+        } elseif ($format == 'videos_ogg') {
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'ogg', $media->getProviderReference()));
+        } elseif ($format == 'videos_webm') {
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'webm', $media->getProviderReference()));
+        } elseif ($format == 'videos_mp4') {
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'mp4', $media->getProviderReference()));
+        } elseif ($format == 'adminref') {
+            $path = sprintf('%s/thumb_%d_%s.jpg', $this->generatePath($media), $media->getId(), 'admin');
+        } else {
+            $path = sprintf('%s/thumb_%d_%s.jpg',
+                $this->generatePath($media),
+                $media->getId(),
+                $format
+            );
+        }
+        return $path;
     }
 
     /**
@@ -464,9 +495,23 @@ class VideoProvider extends FileProvider {
                 $this->em->remove($galleryHasMedia);
             }
         }
-        
-        if ($this->getFilesystem()->has($media)) {
-            $this->getFilesystem()->delete($media);
+
+        if ($this->configMp4) {
+            $this->addFormat('videos_mp4', 'mp4');
+        }
+        if ($this->configOgg) {
+            $this->addFormat('videos_ogg', 'ogg');
+        }
+        if ($this->configWebm) {
+            $this->addFormat('videos_webm', 'webm');
+        }
+        $this->addFormat('reference', 'reference');
+        $this->addFormat('adminref', 'admin');
+
+        $path = $this->getReferenceImage($media)->getKey();
+
+        if ($this->getFilesystem()->has($path)) {
+            $this->getFilesystem()->delete($path);
         }
 
         if ($this->requireThumbnails()) {
@@ -529,8 +574,23 @@ class VideoProvider extends FileProvider {
         $oldMedia = clone $media;
         $oldMedia->setProviderReference($media->getPreviousProviderReference());
 
+        if ($this->configMp4) {
+            $this->addFormat('videos_mp4', 'mp4');
+        }
+        if ($this->configOgg) {
+            $this->addFormat('videos_ogg', 'ogg');
+        }
+        if ($this->configWebm) {
+            $this->addFormat('videos_webm', 'webm');
+        }
+        $this->addFormat('reference', 'reference');
+
         if ($this->getFilesystem()->has($oldMedia)) {
             $this->getFilesystem()->delete($oldMedia);
+        }
+
+        if ($this->requireThumbnails()) {
+            $this->thumbnail->delete($this, $oldMedia);
         }
 
         $this->fixBinaryContent($media);
