@@ -95,7 +95,26 @@ class VideoProvider extends FileProvider {
             'constraints' => array(
                 new NotBlank(),
                 new NotNull(),
-            ),
+            )
+        ));
+
+        $formMapper->add('thumbnailCapture', 'integer', array(
+            'mapped'        => false,
+            'required'      => false,
+            'label'         => 'Thumbnail generator (set value in seconds)',
+        ));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildEditForm(FormMapper $formMapper) {
+        parent::buildEditForm($formMapper);
+
+        $formMapper->add('thumbnailCapture', 'integer', array(
+            'mapped'        => false,
+            'required'      => false,
+            'label'         => 'Thumbnail generator (set value in seconds)',
         ));
     }
 
@@ -411,15 +430,27 @@ class VideoProvider extends FileProvider {
         $frame->save($thumnailPath);
     }
 
+
+    private function updateConfigFrameValue($media){
+        $uniqid = $this->container->get('request')->query->get('uniqid');
+        $formData = $this->container->get('request')->request->get($uniqid);
+
+        if (!empty($formData['thumbnailCapture'])) {
+            if ($formData['thumbnailCapture'] <= round($media->getLength())) {
+                $this->configImageFrame = $formData['thumbnailCapture'];
+            }
+        }
+    }
+
     /**
      * {@inheritdoc}
      */
     public function prePersist(MediaInterface $media) {
-
         if (!$media->getBinaryContent()) {
 
             return;
         }
+        $this->updateConfigFrameValue($media);
 
         /*$metadata = [
             'filename' => $media->getProviderMetadata('filename')
@@ -536,8 +567,8 @@ class VideoProvider extends FileProvider {
             return;
         }
 
+        $this->updateConfigFrameValue($media);
 
-        
         $metadata = $media->getProviderMetadata('filename');
 
         // genero los nombres de archivos de cada uno de los formatos
