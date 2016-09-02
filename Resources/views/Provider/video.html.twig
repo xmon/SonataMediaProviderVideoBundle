@@ -1,4 +1,4 @@
-<link href="http://vjs.zencdn.net/5.0.2/video-js.css" rel="stylesheet">    
+<link href="http://vjs.zencdn.net/5.0.2/video-js.css" rel="stylesheet">
 <script src="http://vjs.zencdn.net/ie8/1.1.0/videojs-ie8.min.js"></script>
 <script src="http://vjs.zencdn.net/5.0.2/video.js"></script>  
 
@@ -17,7 +17,7 @@
     {% if media.providerMetadata.mp4_available is defined %}
         <source src="{{ options.video_mp4 }}" type="video/mp4">
     {% endif %}
-    {% if media.providerMetadata.ogg_available is defined true %}
+    {% if media.providerMetadata.ogg_available is defined %}
         <source src="{{ options.video_ogg }}" type="video/ogg">
     {% endif %}
     {% if media.providerMetadata.webm_available is defined %}
