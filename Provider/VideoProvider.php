@@ -2,7 +2,7 @@
 
 namespace Xmon\SonataMediaProviderVideoBundle\Provider;
 
-//use Symfony\Component\HttpFoundation\File\UploadedFile;
+// use Symfony\Component\HttpFoundation\File\UploadedFile;
 //use Symfony\Component\HttpFoundation\Response;
 //use Symfony\Component\HttpFoundation\StreamedResponse;
 //use Symfony\Component\Form\FormBuilder;
@@ -10,6 +10,7 @@ namespace Xmon\SonataMediaProviderVideoBundle\Provider;
 //use Sonata\AdminBundle\Validator\ErrorElement;
 //use Sonata\MediaBundle\Entity\BaseMedia as Media;
 //use Gaufrette\Adapter\Local;
+use Symfony\Component\Filesystem\Filesystem as Fs;
 use Sonata\MediaBundle\Provider\FileProvider;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Resizer\ResizerInterface;
@@ -271,6 +272,14 @@ class VideoProvider extends FileProvider {
             $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
             $video->save(new Video\WebM(), $webm);
         }
+
+        //If no conversion format available simply duplicate file with the right name
+        if (!$this->configMp4 && !$this->configOgg && !$this->configOgg) {
+            $filename = sprintf('videos_mp4_%s', $media->getId().'.mp4');
+            $path = sprintf('%s/%s/', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media));
+            $fs = new Fs();
+            $fs->copy($path.'/'.$media->getProviderReference(), $path.'/'.$filename, true);
+        }
     }
 
     /**
@@ -440,6 +449,9 @@ class VideoProvider extends FileProvider {
         if ($this->configWebm) {
              $metadata['webm_available'] = true;
         }
+        if (!$this->configMp4 && !$this->configOgg && !$this->configOgg) {
+            $metadata['mp4_available'] = true;
+        }
 
         $media->setProviderMetadata($metadata);
     }
@@ -453,6 +465,9 @@ class VideoProvider extends FileProvider {
         }
         if ($this->configWebm) {
             $this->addFormat('videos_webm', 'webm');
+        }
+        if (!$this->configMp4 && !$this->configOgg && !$this->configOgg) {
+            $this->addFormat('videos_mp4', 'mp4');
         }
         $this->addFormat('reference', 'reference');
         $this->addFormat('thumb_admin', 'thumb_admin');
