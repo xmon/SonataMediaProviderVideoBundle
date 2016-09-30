@@ -2,7 +2,7 @@
 
 namespace Xmon\SonataMediaProviderVideoBundle\Provider;
 
-//use Symfony\Component\HttpFoundation\File\UploadedFile;
+// use Symfony\Component\HttpFoundation\File\UploadedFile;
 //use Symfony\Component\HttpFoundation\Response;
 //use Symfony\Component\HttpFoundation\StreamedResponse;
 //use Symfony\Component\Form\FormBuilder;
@@ -10,6 +10,7 @@ namespace Xmon\SonataMediaProviderVideoBundle\Provider;
 //use Sonata\AdminBundle\Validator\ErrorElement;
 //use Sonata\MediaBundle\Entity\BaseMedia as Media;
 //use Gaufrette\Adapter\Local;
+use Symfony\Component\Filesystem\Filesystem as Fs;
 use Sonata\MediaBundle\Provider\FileProvider;
 use Sonata\MediaBundle\Model\MediaInterface;
 use Sonata\MediaBundle\Resizer\ResizerInterface;
@@ -47,6 +48,7 @@ class VideoProvider extends FileProvider {
     protected $configOgg;
     protected $configWebm;
     protected $entityManager;
+    protected $thumbnail;
 
     /**
      * @param string                                                $name
@@ -76,6 +78,7 @@ class VideoProvider extends FileProvider {
         $this->ffmpeg = $FFMpeg;
         $this->container = $container;
         $this->em = $entityManager;
+        $this->thumbnail = $thumbnail;
 
         // configuración
         $this->configImageFrame = $this->container->getParameter('xmon_ffmpeg.image_frame');
@@ -93,7 +96,26 @@ class VideoProvider extends FileProvider {
             'constraints' => array(
                 new NotBlank(),
                 new NotNull(),
-            ),
+            )
+        ));
+
+        $formMapper->add('thumbnailCapture', 'integer', array(
+            'mapped'        => false,
+            'required'      => false,
+            'label'         => 'Thumbnail generator (set value in seconds)',
+        ));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildEditForm(FormMapper $formMapper) {
+        parent::buildEditForm($formMapper);
+
+        $formMapper->add('thumbnailCapture', 'integer', array(
+            'mapped'        => false,
+            'required'      => false,
+            'label'         => 'Thumbnail generator (set value in seconds)',
         ));
     }
 
@@ -183,6 +205,14 @@ class VideoProvider extends FileProvider {
     /**
      * {@inheritdoc}
      */
+    public function requireThumbnails()
+    {
+        return $this->getResizer() !== null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function generateThumbnails(MediaInterface $media, $ext = 'jpg') {
         $this->generateReferenceImage($media);
 
@@ -225,22 +255,30 @@ class VideoProvider extends FileProvider {
 
         if ($this->configMp4) {
             // genero los nombres de archivos de cada uno de los formatos
-            $pathMp4 = sprintf('%s/%s/videos_mp4_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getProviderReference());
+            $pathMp4 = sprintf('%s/%s/videos_mp4_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getId().'.mp4');
             $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
             $video->save(new Video\X264(), $mp4);
             $media->setProviderMetadata(['filename_mp4' => $mp4]);
         }
 
         if ($this->configOgg) {
-            $pathOgg = sprintf('%s/%s/videos_ogg_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getProviderReference());
+            $pathOgg = sprintf('%s/%s/videos_ogg_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getId().'.ogg');
             $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
             $video->save(new Video\Ogg(), $ogg);
         }
 
         if ($this->configWebm) {
-            $pathWebm = sprintf('%s/%s/videos_webm_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getProviderReference());
+            $pathWebm = sprintf('%s/%s/videos_webm_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getId().'.webm');
             $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
             $video->save(new Video\WebM(), $webm);
+        }
+
+        //If no conversion format available simply duplicate file with the right name
+        if (!$this->configMp4 && !$this->configOgg && !$this->configOgg) {
+            $filename = sprintf('videos_mp4_%s', $media->getId().'.mp4');
+            $path = sprintf('%s/%s/', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media));
+            $fs = new Fs();
+            $fs->copy($path.'/'.$media->getProviderReference(), $path.'/'.$filename, true);
         }
     }
 
@@ -256,35 +294,41 @@ class VideoProvider extends FileProvider {
      * {@inheritdoc}
      */
     public function generatePrivateUrl(MediaInterface $media, $format) {
-        
+        $path = $this->generateUrl($media, $format);
+
+        return $path;
     }
 
     /**
      * {@inheritdoc}
      */
     public function generatePublicUrl(MediaInterface $media, $format) {
-        
+        $path = $this->generateUrl($media, $format);
+
+        return $this->getCdn()->getPath($path, $media->getCdnIsFlushable());
+    }
+
+    private function generateUrl(MediaInterface $media, $format){
         if ($format == 'reference') {
             $path = sprintf('%s/%s', $this->generatePath($media), $media->getProviderReference());
         } elseif ($format == 'admin') {
             $path = sprintf('%s/%s', $this->generatePath($media), str_replace($this->getExtension($media), 'jpg', $media->getProviderReference()));
+        } elseif ($format == 'thumb_admin') {
+            $path = sprintf('%s/thumb_%d_%s.jpg', $this->generatePath($media), $media->getId(), 'admin');
         } elseif ($format == 'videos_ogg') {
-            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'ogg', $media->getProviderReference()));
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'ogg', $media->getId().'.ogg'));
         } elseif ($format == 'videos_webm') {
-            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'webm', $media->getProviderReference()));
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'webm', $media->getId().'.webm' ));
         } elseif ($format == 'videos_mp4') {
-            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'mp4', $media->getProviderReference()));
+            $path = sprintf('%s/%s_%s', $this->generatePath($media), $format, str_replace($media->getExtension(), 'mp4', $media->getId().'.mp4'));
         } else {
-            //$path = $this->thumbnail->generatePublicUrl($this, $media, $format);
-            //$path = sprintf('%s/%s', $this->generatePath($media), str_replace($this->getExtension($media), 'jpg', $media->getProviderReference()));
             $path = sprintf('%s/thumb_%d_%s.jpg',
                 $this->generatePath($media),
                 $media->getId(),
                 $format
             );
         }
-
-        return $this->getCdn()->getPath($path, $media->getCdnIsFlushable());
+        return $path;
     }
 
     /**
@@ -380,61 +424,64 @@ class VideoProvider extends FileProvider {
         $frame->save($thumnailPath);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function prePersist(MediaInterface $media) {
+    private function updateConfigFrameValue($media){
+        $uniqid = $this->container->get('request')->query->get('uniqid');
+        $formData = $this->container->get('request')->request->get($uniqid);
 
-        if (!$media->getBinaryContent()) {
-
-            return;
+        if (!empty($formData['thumbnailCapture'])) {
+            if ($formData['thumbnailCapture'] <= round($media->getLength())) {
+                $this->configImageFrame = $formData['thumbnailCapture'];
+            }
         }
+    }
 
-        /*$metadata = [
-            'filename' => $media->getProviderMetadata('filename')
-        ];
-
-        // genero los nombres de archivos de cada uno de los formatos
-        if ($this->configMp4) {
-            $pathMp4 = sprintf('%s/videos_mp4_%s', $this->generatePath($media), $media->getProviderReference());
-            $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
-            $metadata['filename_mp4'] = $mp4;
-        }
-
-        if ($this->configOgg) {
-            $pathOgg = sprintf('%s/videos_ogg_%s', $this->generatePath($media), $media->getProviderReference());
-            $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
-            $metadata['filename_ogg'] = $ogg;
-        }
-
-        if ($this->configWebm) {
-            $pathWebm = sprintf('%s/videos_webm_%s', $this->generatePath($media), $media->getProviderReference());
-            $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
-            $metadata['filename_webm'] = $webm;
-        }*/
-        
+    private function setProviderMetadataAvailableVideoFormat(MediaInterface $media){
+        $this->updateConfigFrameValue($media);
         $metadata = $media->getProviderMetadata('filename');
 
         // genero los nombres de archivos de cada uno de los formatos
         if ($this->configMp4) {
-            $pathMp4 = sprintf('videos_mp4_%s', $media->getProviderReference());
-            $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
-            $metadata['filename_mp4'] = $mp4;
+             $metadata['mp4_available'] = true;
         }
-
         if ($this->configOgg) {
-            $pathOgg = sprintf('videos_ogg_%s', $media->getProviderReference());
-            $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
-            $metadata['filename_ogg'] = $ogg;
+             $metadata['ogg_available'] = true;
         }
-
         if ($this->configWebm) {
-            $pathWebm = sprintf('videos_webm_%s', $media->getProviderReference());
-            $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
-            $metadata['filename_webm'] = $webm;
+             $metadata['webm_available'] = true;
+        }
+        if (!$this->configMp4 && !$this->configOgg && !$this->configOgg) {
+            $metadata['mp4_available'] = true;
         }
 
         $media->setProviderMetadata($metadata);
+    }
+
+    private function getAvailableFormatToUpdateOrDelete(){
+        if ($this->configMp4) {
+            $this->addFormat('videos_mp4', 'mp4');
+        }
+        if ($this->configOgg) {
+            $this->addFormat('videos_ogg', 'ogg');
+        }
+        if ($this->configWebm) {
+            $this->addFormat('videos_webm', 'webm');
+        }
+        if (!$this->configMp4 && !$this->configOgg && !$this->configOgg) {
+            $this->addFormat('videos_mp4', 'mp4');
+        }
+        $this->addFormat('reference', 'reference');
+        $this->addFormat('thumb_admin', 'thumb_admin');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function prePersist(MediaInterface $media) {
+        if (!$media->getBinaryContent()) {
+            return;
+        }
+
+        $this->setProviderMetadataAvailableVideoFormat($media);
     }
 
     /**
@@ -442,7 +489,6 @@ class VideoProvider extends FileProvider {
      */
     public function postPersist(MediaInterface $media) {
         if (!$media->getBinaryContent()) {
-
             return;
         }
 
@@ -464,9 +510,13 @@ class VideoProvider extends FileProvider {
                 $this->em->remove($galleryHasMedia);
             }
         }
-        
-        if ($this->getFilesystem()->has($media)) {
-            $this->getFilesystem()->delete($media);
+
+        $this->getAvailableFormatToUpdateOrDelete();
+
+        $path = $this->getReferenceImage($media)->getKey();
+
+        if ($this->getFilesystem()->has($path)) {
+            $this->getFilesystem()->delete($path);
         }
 
         if ($this->requireThumbnails()) {
@@ -485,36 +535,11 @@ class VideoProvider extends FileProvider {
      * {@inheritdoc}
      */
     public function preUpdate(MediaInterface $media) {
-
         if (!$media->getBinaryContent()) {
-
             return;
         }
 
-
-        
-        $metadata = $media->getProviderMetadata('filename');
-
-        // genero los nombres de archivos de cada uno de los formatos
-        if ($this->configMp4) {
-            $pathMp4 = sprintf('videos_mp4_%s', $media->getProviderReference());
-            $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
-            $metadata['filename_mp4'] = $mp4;
-        }
-
-        if ($this->configOgg) {
-            $pathOgg = sprintf('videos_ogg_%s', $media->getProviderReference());
-            $ogg = preg_replace('/\.[^.]+$/', '.' . 'ogg', $pathOgg);
-            $metadata['filename_ogg'] = $ogg;
-        }
-
-        if ($this->configWebm) {
-            $pathWebm = sprintf('videos_webm_%s', $media->getProviderReference());
-            $webm = preg_replace('/\.[^.]+$/', '.' . 'webm', $pathWebm);
-            $metadata['filename_webm'] = $webm;
-        }
-
-        $media->setProviderMetadata($metadata);
+        $this->setProviderMetadataAvailableVideoFormat($media);
     }
 
     /**
@@ -529,8 +554,14 @@ class VideoProvider extends FileProvider {
         $oldMedia = clone $media;
         $oldMedia->setProviderReference($media->getPreviousProviderReference());
 
+        $this->getAvailableFormatToUpdateOrDelete();
+
         if ($this->getFilesystem()->has($oldMedia)) {
             $this->getFilesystem()->delete($oldMedia);
+        }
+
+        if ($this->requireThumbnails()) {
+            $this->thumbnail->delete($this, $oldMedia);
         }
 
         $this->fixBinaryContent($media);

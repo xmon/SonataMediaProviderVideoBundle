@@ -1,4 +1,4 @@
-<link href="http://vjs.zencdn.net/5.0.2/video-js.css" rel="stylesheet">    
+<link href="http://vjs.zencdn.net/5.0.2/video-js.css" rel="stylesheet">
 <script src="http://vjs.zencdn.net/ie8/1.1.0/videojs-ie8.min.js"></script>
 <script src="http://vjs.zencdn.net/5.0.2/video.js"></script>  
 
@@ -14,13 +14,13 @@
     height="{{ height }}"
     poster="/uploads/media/{{ options.thumbnail.getKey() }}" data-setup="{}">
 
-    {% if media.providerMetadata.filename_mp4 is defined  %}
+    {% if media.providerMetadata.mp4_available is defined %}
         <source src="{{ options.video_mp4 }}" type="video/mp4">
     {% endif %}
-    {% if media.providerMetadata.filename_ogg is defined %}
+    {% if media.providerMetadata.ogg_available is defined %}
         <source src="{{ options.video_ogg }}" type="video/ogg">
     {% endif %}
-    {% if media.providerMetadata.filename_webm is defined %}
+    {% if media.providerMetadata.webm_available is defined %}
         <source src="{{ options.video_webm }}" type="video/webm">
     {% endif %}
     <p class="vjs-no-js">
