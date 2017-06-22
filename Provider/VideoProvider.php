@@ -77,7 +77,7 @@ class VideoProvider extends FileProvider {
         $this->ffprobe = $FFProbe;
         $this->ffmpeg = $FFMpeg;
         $this->container = $container;
-        $this->em = $entityManager;
+        $this->entityManager = $entityManager;
         $this->thumbnail = $thumbnail;
 
         // configuración
@@ -507,7 +507,7 @@ class VideoProvider extends FileProvider {
         // arreglo para eliminar la relación del video con la galería
         if ($galleryHasMedias = $media->getGalleryHasMedias()) {
             foreach ($galleryHasMedias as $galleryHasMedia) {
-                $this->em->remove($galleryHasMedia);
+                $this->entityManager->remove($galleryHasMedia);
             }
         }
 
