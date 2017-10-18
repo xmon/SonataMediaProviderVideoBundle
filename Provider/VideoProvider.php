@@ -257,7 +257,7 @@ class VideoProvider extends FileProvider {
             // genero los nombres de archivos de cada uno de los formatos
             $pathMp4 = sprintf('%s/%s/videos_mp4_%s', $this->getFilesystem()->getAdapter()->getDirectory(), $this->generatePath($media), $media->getId().'.mp4');
             $mp4 = preg_replace('/\.[^.]+$/', '.' . 'mp4', $pathMp4);
-            $video->save(new Video\X264(), $mp4);
+            $video->save(new Video\X264('aac'), $mp4);
             $media->setProviderMetadata(['filename_mp4' => $mp4]);
         }
 
