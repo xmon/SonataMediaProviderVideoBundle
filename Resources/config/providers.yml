@@ -12,18 +12,18 @@ services:
             - { name: sonata.media.provider }
         arguments:
             - sonata.media.provider.video
-            - @sonata.media.filesystem.local
-            - @sonata.media.cdn.server
-            - @sonata.media.generator.default
-            - @sonata.media.thumbnail.format
+            - '@sonata.media.filesystem.local'
+            - '@sonata.media.cdn.server'
+            - '@sonata.media.generator.default'
+            - '@sonata.media.thumbnail.format'
             - [ mp4 ]
             - [ video/mp4 ]
-            - @sonata.media.resizer.custom
-            - @sonata.media.metadata.proxy
-            - @xmon_ffmpeg.ffmpeg
-            - @xmon_ffmpeg.ffprobe
-            - @service_container
-            - @doctrine.orm.entity_manager
+            - '@sonata.media.resizer.custom'
+            - '@sonata.media.metadata.proxy'
+            - '@xmon_ffmpeg.ffmpeg'
+            - '@xmon_ffmpeg.ffprobe'
+            - '@service_container'
+            - '@doctrine.orm.entity_manager'
         calls:
             - [ setTemplates, [ { helper_thumbnail: XmonSonataMediaProviderVideoBundle:Provider:thumbnail.html.twig, helper_view: XmonSonataMediaProviderVideoBundle:Provider:video.html.twig } ] ]
 
@@ -49,7 +49,7 @@ services:
     # redimensiones imagenes personalizado
     sonata.media.resizer.custom:
         class: %xmon.provider.video.resize%
-        arguments: [@sonata.media.adapter.image.gd, 'outbound', @sonata.media.metadata.proxy]
+        arguments: ['@sonata.media.adapter.image.gd', 'outbound', '@sonata.media.metadata.proxy']
     # FIN redimensiones imagenes personalizado
             
     # variables globales para utilizar en plantillas Twig
