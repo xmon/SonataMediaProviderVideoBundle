@@ -9,7 +9,7 @@ parameters:
 
 services:
     cache:
-        class: Doctrine\Common\Cache\ApcCache
+        class: Psr\Cache\CacheItemPoolInterface
 
     sonata.media.provider.video:
         class: %xmon_video.provider.video.class%
