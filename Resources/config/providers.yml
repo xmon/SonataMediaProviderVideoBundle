@@ -1,57 +1,68 @@
 parameters:
     xmon_video.provider.video.class: Xmon\SonataMediaProviderVideoBundle\Provider\VideoProvider
     xmon_video.ffmpeg.class: FFMpeg\FFMpeg
+    xmon_video.ffmpeg_driver.class: FFMpeg\Driver\FFMpegDriver
     xmon_video.ffprobe.class: FFMpeg\FFProbe
+    xmon_video.ffprobe_driver.class: FFMpeg\Driver\FFProbeDriver
     xmon.manager.video.class: Xmon\SonataMediaProviderVideoBundle\Manager\VideoManager
     xmon.provider.video.resize: Xmon\SonataMediaProviderVideoBundle\CoreBundle\Resizer\CustomResizer
 
 services:
+    cache:
+        class: Doctrine\Common\Cache\ApcCache
+
     sonata.media.provider.video:
         class: %xmon_video.provider.video.class%
         tags:
             - { name: sonata.media.provider }
         arguments:
             - sonata.media.provider.video
-            - @sonata.media.filesystem.local
-            - @sonata.media.cdn.server
-            - @sonata.media.generator.default
-            - @sonata.media.thumbnail.format
+            - '@sonata.media.filesystem.local'
+            - '@sonata.media.cdn.server'
+            - '@sonata.media.generator.default'
+            - '@sonata.media.thumbnail.format'
             - [ mp4 ]
             - [ video/mp4 ]
-            - @sonata.media.resizer.custom
-            - @sonata.media.metadata.proxy
-            - @xmon_ffmpeg.ffmpeg
-            - @xmon_ffmpeg.ffprobe
-            - @service_container
-            - @doctrine.orm.entity_manager
+            - '@sonata.media.resizer.custom'
+            - '@sonata.media.metadata.proxy'
+            - '@xmon_ffmpeg.ffmpeg'
+            - '@xmon_ffmpeg.ffprobe'
+            - '@service_container'
+            - '@doctrine.orm.entity_manager'
         calls:
             - [ setTemplates, [ { helper_thumbnail: XmonSonataMediaProviderVideoBundle:Provider:thumbnail.html.twig, helper_view: XmonSonataMediaProviderVideoBundle:Provider:video.html.twig } ] ]
 
+    xmon_ffmpeg.ffmpeg_driver:
+        class: %xmon_video.ffmpeg_driver.class%
+        factory: [%xmon_video.ffmpeg_driver.class%, create]
+
+        arguments: ['@logger', { ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%', timeout: '%xmon_ffmpeg.binary_timeout%', ffmpeg.threads: '%xmon_ffmpeg.threads_count%' } ]
+
+    xmon_ffmpeg.ffprobe_driver:
+        class: %xmon_video.ffprobe_driver.class%
+        factory: [%xmon_video.ffprobe_driver.class%, create]
+        arguments: [{ ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%' }, '@logger']
+
     xmon_ffmpeg.ffmpeg:
         class: %xmon_video.ffmpeg.class%
-        factory_class: %xmon_video.ffmpeg.class%
-        lazy: true
-        factory_method: create
-        arguments: [{ ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%', timeout: '%xmon_ffmpeg.binary_timeout%', ffmpeg.threads: '%xmon_ffmpeg.threads_count%' }, '@logger']
+        arguments: ['@xmon_ffmpeg.ffmpeg_driver', '@xmon_ffmpeg.ffprobe']
+
     xmon_ffmpeg.ffprobe:
         class: %xmon_video.ffprobe.class%
-        factory_class: %xmon_video.ffprobe.class%
-        lazy: true
-        factory_method: create
-        arguments: [{ ffmpeg.binaries: '%xmon_ffmpeg.binary%', ffprobe.binaries: '%xmon_ffprobe.binary%' }, '@logger']
+        arguments: ['@xmon_ffmpeg.ffprobe_driver', '@cache']
 
     xmon.manager.video:
         class: %xmon.manager.video.class%
         tags:
             - { name: leclerc.manager }
         arguments: ['@doctrine.orm.default_entity_manager', Xmon\SonataMediaProviderVideoBundle\Entity\Video]
-            
+
     # redimensiones imagenes personalizado
     sonata.media.resizer.custom:
         class: %xmon.provider.video.resize%
-        arguments: [@sonata.media.adapter.image.gd, 'outbound', @sonata.media.metadata.proxy]
+        arguments: ['@sonata.media.adapter.image.gd', 'outbound', '@sonata.media.metadata.proxy']
     # FIN redimensiones imagenes personalizado
-            
+
     # variables globales para utilizar en plantillas Twig
     twig.extension.globals_extension:
          class: Xmon\SonataMediaProviderVideoBundle\Twig\Extension\GlobalsExtension

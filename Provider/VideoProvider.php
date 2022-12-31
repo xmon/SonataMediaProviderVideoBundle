@@ -425,8 +425,8 @@ class VideoProvider extends FileProvider {
     }
 
     private function updateConfigFrameValue($media){
-        $uniqid = $this->container->get('request')->query->get('uniqid');
-        $formData = $this->container->get('request')->request->get($uniqid);
+        $uniqid = $this->container->get('request_stack')->getCurrentRequest()->query->get('uniqid');
+        $formData = $this->container->get('request_stack')->getCurrentRequest()->get($uniqid);
 
         if (!empty($formData['thumbnailCapture'])) {
             if ($formData['thumbnailCapture'] <= round($media->getLength())) {
